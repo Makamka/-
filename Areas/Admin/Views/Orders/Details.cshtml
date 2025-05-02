@@ -1,0 +1,86 @@
+@model ECommerceSolution.Models.Order
+@{
+    ViewBag.Title = $"Замовлення №{Model.Id}";
+    Layout = "/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+
+    // Сформируем HTML-строку с опциями
+    var optionsHtml = string.Join(
+        "\n",
+        ECommerceSolution.Models.Order.AllStatuses.Select(status =>
+        {
+            var sel = status == Model.Status ? " selected" : "";
+            return $"<option value=\"{status}\"{sel}>{status}</option>";
+        })
+    );
+}
+
+<h1>Замовлення №@Model.Id</h1>
+
+<p>
+    <a asp-area="Admin"
+       asp-controller="Orders"
+       asp-action="Index"
+       class="btn btn-outline-secondary mb-3">
+        ← Повернутися до списку
+    </a>
+</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Клієнт</dt>
+    <dd class="col-sm-9">@Model.FullName</dd>
+
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">@Model.Email</dd>
+
+    <dt class="col-sm-3">Телефон</dt>
+    <dd class="col-sm-9">@Model.Phone</dd>
+
+    <dt class="col-sm-3">Адреса</dt>
+    <dd class="col-sm-9">@Model.Address</dd>
+
+    <dt class="col-sm-3">Дата створення</dt>
+    <dd class="col-sm-9">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+    <dt class="col-sm-3">Статус</dt>
+    <dd class="col-sm-9">
+        <form asp-area="Admin"
+              asp-controller="Orders"
+              asp-action="ChangeStatus"
+              method="post"
+              class="d-flex align-items-center">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <select name="newStatus" class="form-select me-2" style="width: auto;">
+                @Html.Raw(optionsHtml)
+            </select>
+
+            <button type="submit" class="btn btn-sm btn-success">
+                Змінити статус
+            </button>
+        </form>
+    </dd>
+</dl>
+
+<h3 class="mt-4">Товари у замовленні</h3>
+<table class="table table-bordered">
+    <thead class="table-light">
+        <tr>
+            <th>Назва</th>
+            <th>Ціна</th>
+            <th>Кількість</th>
+            <th>Сума</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.OrderItems)
+        {
+            <tr>
+                <td>@item.Product.Title</td>
+                <td>@item.UnitPrice.ToString("F2") ₴</td>
+                <td>@item.Quantity</td>
+                <td>@( (item.UnitPrice * item.Quantity).ToString("F2") ) ₴</td>
+            </tr>
+        }
+    </tbody>
+</table>
